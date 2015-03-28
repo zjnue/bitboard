@@ -1,0 +1,17 @@
+-main TestAll
+-cp src
+-cp test
+-lib utest
+-neko bin/test.n
+
+--next
+
+-main TestAll
+-cp src
+-cp test
+-lib utest
+-js bin/test.js
+-D nodejs
+
+#-cmd node bin/test.js
+-cmd neko bin/test.n
