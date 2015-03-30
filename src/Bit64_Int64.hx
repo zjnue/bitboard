@@ -9,127 +9,77 @@ class Bit64_Int64 {
 	}
 	
 	inline function fromArr( arr : Array<Int> ) : Int64 {
-		return Int64.make((arr[3] << 16) + arr[2], (arr[1] << 16) + arr[0]);
+		return Int64.ofInt(arr[3]) << 48 | Int64.ofInt(arr[2]) << 32 | Int64.ofInt(arr[1]) << 16 | Int64.ofInt(arr[0]);
+//		return Int64.make((arr[3] << 16) + arr[2], (arr[1] << 16) + arr[0]);
 	}
 	
-	public function init() {
-		num = Int64.ofInt(0);
+	public inline function init() {
+		num = 0;
 	}
 	
-	public function clone() {
-		var b = new Bit64_Int64();
-		#if (haxe_ver >= 3.2)
-		b.num = Int64.make(num.high, num.low);
-		#else
-		b.num = Int64.make(num.getHigh(), num.getLow());
-		#end
-		return b;
+	public inline function clone() {
+		return num.copy();
 	}
 	
-	public function isEqual( value : Bit64_Int64 ) : Bool {
-		return Int64.ucompare( num, value.num ) == 0;
+	public inline function isEqual( value : Bit64_Int64 ) : Bool {
+		return num == value.num;
 	}
 	
-	public function isZero() : Bool {
+	public inline function isZero() : Bool {
 		return num.isZero();
 	}
 	
-	public function get( i : Int ) : Int {
-		var int = 0;
-		if( i >= 32 ) {
-			i -= 32;
-			#if (haxe_ver >= 3.2)
-			int = num.high;
-			#else
-			int = num.getHigh();
-			#end
-		} else {
-			#if (haxe_ver >= 3.2)
-			int = num.low;
-			#else
-			int = num.getLow();
-			#end
-		}
-		return 1 & (int >> i);
+	public inline function get( i : Int ) : Int {
+		return (num & Int64.ofInt(1) << i).isZero() ? 0 : 1;
 	}
 
-	public function set( i : Int ) : Bit64_Int64 {
-		if( i > 31 ) {
-			i -= 32;
-			#if (haxe_ver >= 3.2)
-			num = Int64.make(num.high | (1 << i), num.low);
-			#else
-			num = Int64.make(num.getHigh() | (1 << i), num.getLow());
-			#end
-		} else {
-			#if (haxe_ver >= 3.2)
-			num = Int64.make(num.high, num.low | (1 << i));
-			#else
-			num = Int64.make(num.getHigh(), num.getLow() | (1 << i));
-			#end
-		}
+	public inline function set( i : Int ) : Bit64_Int64 {
+		num |= Int64.ofInt(1) << i;
 		return this;
 	}
 	
-	public function clr( i : Int ) : Bit64_Int64 {
-		if( i > 31 ) {
-			i -= 32;
-			#if (haxe_ver >= 3.2)
-			num = Int64.make(num.high ^ (1 << i), num.low);
-			#else
-			num = Int64.make(num.getHigh() ^ (1 << i), num.getLow());
-			#end
-		} else {
-			#if (haxe_ver >= 3.2)
-			num = Int64.make(num.high, num.low ^ (1 << i));
-			#else
-			num = Int64.make(num.getHigh(), num.getLow() ^ (1 << i));
-			#end
-		}
+	public inline function clr( i : Int ) : Bit64_Int64 {
+		num ^= Int64.ofInt(1) << i;
 		return this;
 	}
 	
-	public function and( b : Bit64_Int64 ) : Bit64_Int64 {
-		num = Int64.and(num, b.num);
+	public inline function and( b : Bit64_Int64 ) : Bit64_Int64 {
+		num &= b.num;
 		return this;
 	}
 	
-	public function or( b : Bit64_Int64 ) : Bit64_Int64 {
-		num = Int64.or(num, b.num);
+	public inline function or( b : Bit64_Int64 ) : Bit64_Int64 {
+		num |= b.num;
 		return this;
 	}
 	
-	public function xor( b : Bit64_Int64 ) : Bit64_Int64 {
-		num = Int64.xor(num, b.num);
+	public inline function xor( b : Bit64_Int64 ) : Bit64_Int64 {
+		num ^= b.num;
 		return this;
 	}
 	
-	public function not() : Bit64_Int64 {
-		#if (haxe_ver >= 3.2)
-		num = Int64.make(~num.high, ~num.low);
-		#else
-		num = Int64.make(~num.getHigh(), ~num.getLow());
-		#end
+	public inline function not() : Bit64_Int64 {
+		num = ~num;
 		return this;
 	}
 	
-	public function shl( i : Int ) : Bit64_Int64 {
-		num = num.shl(i);
+	public inline function shl( i : Int ) : Bit64_Int64 {
+		num <<= i;
 		return this;
 	}
 	
-	public function shr( i :Int ) {
-		num = num.shr(i);
+	public inline function shr( i : Int ) {
+		num >>= i;
 		return this;
 	}
 	
-	public static function ofInt( i : Int ) : Bit64_Int64 {
+	public static inline function ofInt( i : Int ) : Bit64_Int64 {
 		var b = new Bit64_Int64();
 		b.num = Int64.ofInt(i);
 		return b;
 	}
 	
-	public function toString() :String {
+	public function toString() : String {
 		#if (haxe_ver >= 3.2)
 		return num.high + "++" + num.low;
 		#else
@@ -137,7 +87,7 @@ class Bit64_Int64 {
 		#end
 	}
 	
-	public function toBoard() :String {
+	public function toBoard() : String {
 		var str = "";
 		var line = "";
 		#if (haxe_ver >= 3.2)
@@ -165,7 +115,7 @@ class Bit64_Int64 {
 		return str;
 	}
 	
-	public function toNonMonoSpaceFontBoard() :String {
+	public inline function toNonMonoSpaceFontBoard() : String {
 		return toBoard().split("1").join(" 1");
 	}
 }

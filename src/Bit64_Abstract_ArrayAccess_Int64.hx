@@ -3,53 +3,33 @@ using haxe.Int64;
 abstract Bit64_Abstract_ArrayAccess_Int64(Int64) from Int64 to Int64 {
 	
 	public inline function new( ?a : Array<Int> ) {
-		this = (a != null) ? fromArr(a) : Int64.ofInt(0);
+		this = (a != null) ? fromArr(a) : 0;
 	}
 	
 	inline function fromArr( arr : Array<Int> ) : Int64 {
-		return Int64.make((arr[3] << 16) + arr[2], (arr[1] << 16) + arr[0]);
+		return Int64.ofInt(arr[3]) << 48 | Int64.ofInt(arr[2]) << 32 | Int64.ofInt(arr[1]) << 16 | Int64.ofInt(arr[0]);
+//		return Int64.make((arr[3] << 16) + arr[2], (arr[1] << 16) + arr[0]);
 	}
 	
 	public inline function init() {
-		this = Int64.ofInt(0);
+		this = 0;
 	}
 	
-	public function clone() {
-		var b = new Bit64_Abstract_ArrayAccess_Int64();
-		#if (haxe_ver >= 3.2)
-		b = Int64.make(this.high, this.low);
-		#else
-		b = Int64.make(this.getHigh(), this.getLow());
-		#end
-		return b;
+	public inline function clone() {
+		return this.copy();
 	}
 	
-	public function isEqual( value : Bit64_Abstract_ArrayAccess_Int64 ) : Bool {
-		return Int64.ucompare( this, value ) == 0;
+	public inline function isEqual( value : Bit64_Abstract_ArrayAccess_Int64 ) : Bool {
+		return this == value;
 	}
 	
-	public function isZero() : Bool {
+	public inline function isZero() : Bool {
 		return this.isZero();
 	}
 	
 	@:arrayAccess
 	public function get( i : Int ) : Int {
-		var int = 0;
-		if( i >= 32 ) {
-			i -= 32;
-			#if (haxe_ver >= 3.2)
-			int = this.high;
-			#else
-			int = this.getHigh();
-			#end
-		} else {
-			#if (haxe_ver >= 3.2)
-			int = this.low;
-			#else
-			int = this.getLow();
-			#end
-		}
-		return 1 & (int >> i);
+		return (this & Int64.ofInt(1) << i).isZero() ? 0 : 1;
 	}
 	
 	@:arrayAccess
@@ -60,82 +40,52 @@ abstract Bit64_Abstract_ArrayAccess_Int64(Int64) from Int64 to Int64 {
 	}
 	
 	public inline function set( i : Int ) : Bit64_Abstract_ArrayAccess_Int64 {
-		if( i > 31 ) {
-			i -= 32;
-			#if (haxe_ver >= 3.2)
-			this = Int64.make(this.high | (1 << i), this.low);
-			#else
-			this = Int64.make(this.getHigh() | (1 << i), this.getLow());
-			#end
-		} else {
-			#if (haxe_ver >= 3.2)
-			this = Int64.make(this.high, this.low | (1 << i));
-			#else
-			this = Int64.make(this.getHigh(), this.getLow() | (1 << i));
-			#end
-		}
+		this |= Int64.ofInt(1) << i;
 		return this;
 	}
 	
 	public inline function clr( i : Int ) : Bit64_Abstract_ArrayAccess_Int64 {
-		if( i > 31 ) {
-			i -= 32;
-			#if (haxe_ver >= 3.2)
-			this = Int64.make(this.high ^ (1 << i), this.low);
-			#else
-			this = Int64.make(this.getHigh() ^ (1 << i), this.getLow());
-			#end
-		} else {
-			#if (haxe_ver >= 3.2)
-			this = Int64.make(this.high, this.low ^ (1 << i));
-			#else
-			this = Int64.make(this.getHigh(), this.getLow() ^ (1 << i));
-			#end
-		}
+		this ^= Int64.ofInt(1) << i;
 		return this;
 	}
 	
 	public inline function and( b : Bit64_Abstract_ArrayAccess_Int64 ) : Bit64_Abstract_ArrayAccess_Int64 {
-		this = Int64.and(this, b);
+		this &= b;
 		return this;
 	}
 	
 	public inline function or( b : Bit64_Abstract_ArrayAccess_Int64 ) : Bit64_Abstract_ArrayAccess_Int64 {
-		this = Int64.or(this, b);
+		this |= b;
 		return this;
 	}
 	
 	public inline function xor( b : Bit64_Abstract_ArrayAccess_Int64 ) : Bit64_Abstract_ArrayAccess_Int64 {
-		this = Int64.xor(this, b);
+		this ^= b;
 		return this;
 	}
 	
 	public inline function not() : Bit64_Abstract_ArrayAccess_Int64 {
-		#if (haxe_ver >= 3.2)
-		this = Int64.make(~this.high, ~this.low);
-		#else
-		this = Int64.make(~this.getHigh(), ~this.getLow());
-		#end
+		this = ~this;
 		return this;
 	}
 	
 	public inline function shl( i : Int ) : Bit64_Abstract_ArrayAccess_Int64 {
-		this = this.shl(i);
+		this <<= i;
 		return this;
 	}
 	
-	public inline function shr( i :Int ) {
-		this = this.shr(i);
+	public inline function shr( i : Int ) {
+		this >>= i;
 		return this;
 	}
 	
-	public static function ofInt( i : Int ) : Bit64_Abstract_ArrayAccess_Int64 {
+	public static inline function ofInt( i : Int ) : Bit64_Abstract_ArrayAccess_Int64 {
 		var b = new Bit64_Abstract_ArrayAccess_Int64();
 		b = Int64.ofInt(i);
 		return b;
 	}
 	
-	public function toString() :String {
+	public function toString() : String {
 		#if (haxe_ver >= 3.2)
 		return this.high + "++" + this.low;
 		#else
@@ -143,7 +93,7 @@ abstract Bit64_Abstract_ArrayAccess_Int64(Int64) from Int64 to Int64 {
 		#end
 	}
 	
-	public function toBoard() :String {
+	public function toBoard() : String {
 		var str = "";
 		var line = "";
 		#if (haxe_ver >= 3.2)
@@ -171,7 +121,7 @@ abstract Bit64_Abstract_ArrayAccess_Int64(Int64) from Int64 to Int64 {
 		return str;
 	}
 	
-	public function toNonMonoSpaceFontBoard() :String {
+	public inline function toNonMonoSpaceFontBoard() : String {
 		return toBoard().split("1").join(" 1");
 	}
 }
